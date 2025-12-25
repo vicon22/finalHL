@@ -1,0 +1,283 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  labels:
+    app: grafana
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+    - name: 'default'
+      orgId: 1
+      folder: ''
+      type: file
+      disableDeletion: false
+      editable: true
+      options:
+        path: /etc/grafana/dashboards
+        foldersFromFilesStructure: true
+  rps-dashboard.json: |
+    {
+      "id": null,
+      "uid": "rps-dashboard",
+      "title": "RPS Dashboard",
+      "tags": ["rps", "performance"],
+      "timezone": "browser",
+      "schemaVersion": 27,
+      "version": 0,
+      "refresh": "10s",
+      "panels": [
+        {
+          "id": 1,
+          "title": "Current RPS",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+          "targets": [
+            {
+              "expr": "avg(current_rps)",
+              "legendFormat": "Current RPS",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "prometheus"}
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {}
+            }
+          }
+        },
+        {
+          "id": 2,
+          "title": "Rolling Average RPS",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+          "targets": [
+            {
+              "expr": "avg(rolling_average_rps)",
+              "legendFormat": "Rolling Average",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "prometheus"}
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {}
+            }
+          }
+        },
+        {
+          "id": 3,
+          "title": "Total Requests",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+          "targets": [
+            {
+              "expr": "sum(rate(http_requests_total[1m]))",
+              "legendFormat": "Requests/sec",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "prometheus"}
+            },
+            {
+              "expr": "sum(http_requests_total)",
+              "legendFormat": "Total Requests",
+              "refId": "B",
+              "datasource": {"type": "prometheus", "uid": "prometheus"}
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {}
+            }
+          }
+        }
+      ]
+    }
+  latency-dashboard.json: |
+    {
+      "id": null,
+      "uid": "latency-dashboard",
+      "title": "Latency Dashboard",
+      "tags": ["latency", "performance"],
+      "timezone": "browser",
+      "schemaVersion": 27,
+      "version": 0,
+      "refresh": "10s",
+      "panels": [
+        {
+          "id": 1,
+          "title": "Request Duration (P50, P95, P99)",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+          "targets": [
+            {
+              "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+              "legendFormat": "P50",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "prometheus"}
+            },
+            {
+              "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+              "legendFormat": "P95",
+              "refId": "B",
+              "datasource": {"type": "prometheus", "uid": "prometheus"}
+            },
+            {
+              "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le))",
+              "legendFormat": "P99",
+              "refId": "C",
+              "datasource": {"type": "prometheus", "uid": "prometheus"}
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "custom": {}
+            }
+          }
+        },
+        {
+          "id": 2,
+          "title": "Average Request Duration",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+          "targets": [
+            {
+              "expr": "sum(rate(http_request_duration_seconds_sum[5m])) / sum(rate(http_request_duration_seconds_count[5m]))",
+              "legendFormat": "Average Duration",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "prometheus"}
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "s",
+              "custom": {}
+            }
+          }
+        },
+        {
+          "id": 3,
+          "title": "Request Duration Histogram",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+          "targets": [
+            {
+              "expr": "sum(rate(http_request_duration_seconds_bucket[5m])) by (le)",
+              "legendFormat": "{{le}}",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "prometheus"}
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {}
+            }
+          }
+        }
+      ]
+    }
+  anomaly-dashboard.json: |
+    {
+      "id": null,
+      "uid": "anomaly-dashboard",
+      "title": "Anomaly Rate Dashboard",
+      "tags": ["anomaly", "monitoring"],
+      "timezone": "browser",
+      "schemaVersion": 27,
+      "version": 0,
+      "refresh": "10s",
+      "panels": [
+        {
+          "id": 1,
+          "title": "Anomalies Detected (Total)",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+          "targets": [
+            {
+              "expr": "sum(anomalies_detected_total)",
+              "legendFormat": "Total Anomalies",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "prometheus"}
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {}
+            }
+          }
+        },
+        {
+          "id": 2,
+          "title": "Anomaly Rate (per minute)",
+          "type": "timeseries",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+          "targets": [
+            {
+              "expr": "sum(rate(anomalies_detected_total[1m])) * 60",
+              "legendFormat": "Anomalies/min",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "prometheus"}
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {},
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"value": null, "color": "green"},
+                  {"value": 5, "color": "yellow"},
+                  {"value": 10, "color": "red"}
+                ]
+              }
+            }
+          }
+        },
+        {
+          "id": 3,
+          "title": "Anomaly Rate Gauge",
+          "type": "gauge",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+          "targets": [
+            {
+              "expr": "sum(rate(anomalies_detected_total[1m])) * 60",
+              "legendFormat": "Anomalies/min",
+              "refId": "A",
+              "datasource": {"type": "prometheus", "uid": "prometheus"}
+            }
+          ],
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "min": 0,
+              "max": 20,
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  {"value": null, "color": "green"},
+                  {"value": 5, "color": "yellow"},
+                  {"value": 10, "color": "red"}
+                ]
+              }
+            }
+          },
+          "options": {
+            "orientation": "auto",
+            "reduceOptions": {
+              "values": false,
+              "calcs": ["lastNotNull"],
+              "fields": ""
+            },
+            "showThresholdLabels": false,
+            "showThresholdMarkers": true
+          }
+        }
+      ]
+    }

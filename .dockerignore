@@ -1,0 +1,10 @@
+.git
+.gitignore
+*.md
+k8s/
+scripts/
+*.yaml
+*.yml
+!go.mod
+!go.sum
+

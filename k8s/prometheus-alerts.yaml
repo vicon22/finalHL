@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-alerts
+data:
+  alerts.yml: |
+    groups:
+    - name: go_service_alerts
+      interval: 30s
+      rules:
+      - alert: HighAnomalyRate
+        expr: rate(anomalies_detected_total[1m]) * 60 > 5
+        for: 1m
+        labels:
+          severity: critical
+          service: go-service
+        annotations:
+          summary: "High anomaly rate detected"
+          description: "Anomaly rate is {{ $value }} anomalies/min (threshold: 5/min)"
+      
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: go-service
+        annotations:
+          summary: "High latency detected"
+          description: "P95 latency is {{ $value }}s (threshold: 0.05s)"
+      
+      - alert: ServiceDown
+        expr: up{job="go-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: go-service
+        annotations:
+          summary: "Service is down"
+          description: "Go service is not responding"
+
