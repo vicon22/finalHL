@@ -40,3 +40,5 @@ locust_report.html
 locust_report_*.csv
 *.html
 !README.html
+
+__pycache__
